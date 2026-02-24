@@ -11,7 +11,7 @@
 
 ## 下载
 
-当前版本：**v1.1.0**
+当前版本：**v1.1.1**
 
 - [发布页](https://github.com/CatVinci-Studio/GitNote/releases)
 

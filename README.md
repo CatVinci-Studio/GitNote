@@ -13,7 +13,7 @@ A lightweight Electron desktop app for managing text snippets with zero-cost syn
 
 ## Download
 
-Current version: **v1.1.0**
+Current version: **v1.1.1**
 
 - [Release](https://github.com/CatVinci-Studio/GitNote/releases)
 
@@ -41,4 +41,3 @@ npm run build       # current platform
 ## License
 
 MIT
-
