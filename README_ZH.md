@@ -6,8 +6,8 @@
 
 当前版本：**v1.0.0**
 
-- 最新版本：`https://github.com/<owner>/<repo>/releases/latest`
-- 更新日志：`https://github.com/<owner>/<repo>/releases`
+- 最新版本：https://github.com/Muyiiiii/GitNote/releases/tag/v1
+- 更新日志：https://github.com/Muyiiiii/GitNote/releases
 
 ## 功能特性
 

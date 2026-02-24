@@ -1,4 +1,4 @@
-﻿const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
   init: () => ipcRenderer.invoke('app:init'),
@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('api', {
   readLogs: () => ipcRenderer.invoke('logs:read'),
   pullSync: () => ipcRenderer.invoke('sync:pull'),
   forceSync: () => ipcRenderer.invoke('sync:force'),
+  resolveConflict: (choice) => ipcRenderer.invoke('sync:resolve', choice),
+  onConflict: (handler) => ipcRenderer.on('sync:conflict', (_event, data) => handler(data)),
   createItem: (text) => ipcRenderer.invoke('items:create', text),
   updateItem: (payload) => ipcRenderer.invoke('items:update', payload),
   deleteItem: (id) => ipcRenderer.invoke('items:delete', id),

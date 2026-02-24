@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg0: #0e1218;
   --bg1: #151c26;
   --card: rgba(18, 26, 36, 0.92);
@@ -313,6 +313,66 @@ button.ghost {
 .warning {
   color: #f4c16d;
   margin: 0;
+}
+
+.conflict-card {
+  width: min(800px, calc(100vw - 50px));
+  max-height: calc(100vh - 40px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #152130;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.conflict-card h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #f4c16d;
+}
+
+.conflict-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.conflict-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conflict-panel h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.conflict-text {
+  min-height: 200px;
+  max-height: 300px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.conflict-text::-webkit-scrollbar {
+  width: 6px;
+}
+
+.conflict-text::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }
 
 .muted {

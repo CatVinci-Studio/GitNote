@@ -1,4 +1,4 @@
-﻿const state = {
+const state = {
   items: [],
   filtered: [],
   selectedId: null,
@@ -92,7 +92,14 @@ const els = {
   vaultConfirmPassword: document.getElementById('vaultConfirmPassword'),
   vaultChangeAction: document.getElementById('vaultChangeAction'),
   vaultChangeCancel: document.getElementById('vaultChangeCancel'),
-  vaultChangeError: document.getElementById('vaultChangeError')
+  vaultChangeError: document.getElementById('vaultChangeError'),
+  conflictModal: document.getElementById('conflictModal'),
+  conflictLocal: document.getElementById('conflictLocal'),
+  conflictRemote: document.getElementById('conflictRemote'),
+  conflictError: document.getElementById('conflictError'),
+  conflictKeepLocal: document.getElementById('conflictKeepLocal'),
+  conflictKeepRemote: document.getElementById('conflictKeepRemote'),
+  conflictCancel: document.getElementById('conflictCancel')
 };
 
 let vaultMode = 'unlock';
@@ -253,6 +260,49 @@ function openVaultChange() {
 
 function closeVaultChange() {
   els.vaultChangeModal.classList.add('hidden');
+}
+
+let currentConflictData = null;
+
+function openConflictModal(data) {
+  currentConflictData = data;
+  els.conflictError.textContent = '';
+  
+  if (data) {
+    els.conflictLocal.textContent = data.local || '(empty)';
+    els.conflictRemote.textContent = data.remote || '(empty)';
+  } else {
+    els.conflictLocal.textContent = 'Conflict detected in data file';
+    els.conflictRemote.textContent = 'Please choose which version to keep';
+  }
+  
+  els.conflictModal.classList.remove('hidden');
+}
+
+function closeConflictModal() {
+  els.conflictModal.classList.add('hidden');
+  currentConflictData = null;
+}
+
+async function resolveConflict(choice) {
+  els.conflictError.textContent = 'Resolving...';
+  
+  const result = await window.api.resolveConflict(choice);
+  
+  if (!result.ok) {
+    els.conflictError.textContent = result.error || 'Failed to resolve conflict.';
+    return;
+  }
+  
+  closeConflictModal();
+  
+  if (result.items) {
+    state.items = result.items;
+    applyFilter();
+  }
+  
+  applySecurityAndVault(result);
+  resetFocus();
 }
 
 function updateSettingsView() {
@@ -788,6 +838,18 @@ window.api.onWindowShown(() => {
   resetFocus();
 });
 
+window.api.onConflict((data) => {
+  show(els.appView);
+  openConflictModal(data);
+});
+
+els.conflictKeepLocal.addEventListener('click', () => resolveConflict('local'));
+els.conflictKeepRemote.addEventListener('click', () => resolveConflict('remote'));
+els.conflictCancel.addEventListener('click', async () => {
+  await window.api.resolveConflict('cancel');
+  closeConflictModal();
+});
+
 document.addEventListener('keydown', async (event) => {
   const ctrlOrMeta = event.ctrlKey || event.metaKey;
 
@@ -826,6 +888,11 @@ document.addEventListener('keydown', async (event) => {
   if (event.key === 'Escape' && !els.vault.classList.contains('hidden')) {
     pendingModeSwitch = null;
     closeVault();
+    return;
+  }
+
+  if (event.key === 'Escape' && !els.conflictModal.classList.contains('hidden')) {
+    closeConflictModal();
     return;
   }
 

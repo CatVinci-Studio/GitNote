@@ -1,4 +1,4 @@
-﻿const {
+const {
   app,
   BrowserWindow,
   globalShortcut,
@@ -33,6 +33,7 @@ let syncTimer = null;
 let tray = null;
 let logFilePath = '';
 let appIcon = null;
+let pendingConflict = null;
 let forceOpenSettingsOnLaunch = false;
 let windowStateTimer = null;
 let isQuitting = false;
@@ -425,9 +426,11 @@ async function ensureDataFileExists() {
   try {
     await fs.access(file);
   } catch (_err) {
-    if (isEncryptedMode() && isVaultConfigured() && isVaultUnlocked()) {
-      const encrypted = encryptTextWithKey('[]', sessionVaultKey);
-      await fs.writeFile(file, JSON.stringify({ version: VAULT_VERSION, encrypted }, null, 2), 'utf8');
+    if (isEncryptedMode()) {
+      if (isVaultConfigured() && isVaultUnlocked()) {
+        const encrypted = encryptTextWithKey('[]', sessionVaultKey);
+        await fs.writeFile(file, JSON.stringify({ version: VAULT_VERSION, encrypted }, null, 2), 'utf8');
+      }
       return;
     }
     await fs.writeFile(file, '[]', 'utf8');
@@ -447,6 +450,9 @@ function tryParsePlainItems(raw) {
 }
 
 async function loadItems() {
+  if (isEncryptedMode()) {
+    ensureVaultUnlocked();
+  }
   await ensureDataFileExists();
   const raw = await fs.readFile(getDataFilePath(), 'utf8');
 
@@ -454,8 +460,6 @@ async function loadItems() {
     const plaintextItems = tryParsePlainItems(raw);
     return plaintextItems || [];
   }
-
-  ensureVaultUnlocked();
   const plaintextItems = tryParsePlainItems(raw);
   if (plaintextItems) {
     await saveItems(plaintextItems);
@@ -482,14 +486,15 @@ async function loadItems() {
 }
 
 async function saveItems(items) {
-  await ensureDataFileExists();
   if (!isEncryptedMode()) {
+    await ensureDataFileExists();
     await fs.writeFile(getDataFilePath(), JSON.stringify(items, null, 2), 'utf8');
     scheduleSync();
     return;
   }
 
   ensureVaultUnlocked();
+  await ensureDataFileExists();
   const plain = JSON.stringify(items, null, 2);
   const encrypted = encryptTextWithKey(plain, sessionVaultKey);
   const payload = {
@@ -738,6 +743,96 @@ async function resolvePushFailure(pushError) {
   }
 }
 
+async function handleRebaseConflict() {
+  const dataFile = getDataFilePath();
+  let conflictData = null;
+
+  try {
+    const content = await fs.readFile(dataFile, 'utf8');
+    const lines = content.split('\n');
+    let localVersion = '';
+    let remoteVersion = '';
+    let inLocal = false;
+    let inRemote = false;
+
+    for (const line of lines) {
+      if (line.startsWith('<<<<<<<')) {
+        inLocal = true;
+        inRemote = false;
+        continue;
+      }
+      if (line.startsWith('=======')) {
+        inLocal = false;
+        inRemote = true;
+        continue;
+      }
+      if (line.startsWith('>>>>>>>')) {
+        inLocal = false;
+        inRemote = false;
+        continue;
+      }
+      if (inLocal) {
+        localVersion += line + '\n';
+      }
+      if (inRemote) {
+        remoteVersion += line + '\n';
+      }
+    }
+
+    if (localVersion || remoteVersion) {
+      conflictData = {
+        local: localVersion.trim(),
+        remote: remoteVersion.trim()
+      };
+    }
+  } catch (_err) {
+  }
+
+  pendingConflict = conflictData;
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('sync:conflict', conflictData);
+    mainWindow.show();
+    mainWindow.focus();
+  }
+}
+
+async function resolveRebaseConflict(choice) {
+  if (!pendingConflict) {
+    return { ok: false, error: 'No pending conflict.' };
+  }
+
+  try {
+    if (choice === 'local') {
+      await runGitInRepo(['add', '.']);
+      await runGitInRepo(['commit', '-m', 'resolve: keep local']);
+    } else if (choice === 'remote') {
+      await runGitInRepo(['checkout', '--theirs', getDataFilePath()]);
+      await runGitInRepo(['add', '.']);
+      await runGitInRepo(['commit', '-m', 'resolve: keep remote']);
+    } else {
+      await runGitInRepo(['rebase', '--abort']);
+      pendingConflict = null;
+      return { ok: false, error: 'Conflict resolution cancelled.' };
+    }
+
+    const conf = getGitConfig();
+    await runGitInRepo(['push', 'origin', conf.branch]);
+    pendingConflict = null;
+
+    const items = await loadItems();
+    return {
+      ok: true,
+      items,
+      security: { dataMode: getDataMode() },
+      vault: { configured: isVaultConfigured(), unlocked: isVaultUnlocked() }
+    };
+  } catch (err) {
+    pendingConflict = null;
+    return { ok: false, error: String(err.message || err) };
+  }
+}
+
 async function syncNow() {
   if (!isConfigured()) {
     return;
@@ -754,9 +849,15 @@ async function syncNow() {
         throw commitErr;
       }
     }
+    await runGitInRepo(['pull', '--rebase', 'origin', conf.branch]);
     await runGitInRepo(['push', 'origin', conf.branch]);
-  } catch (pushErr) {
-    await resolvePushFailure(pushErr);
+  } catch (err) {
+    const errMsg = String(err.message || err).toLowerCase();
+    if (errMsg.includes('rebase') && (errMsg.includes('conflict') || errMsg.includes('failed'))) {
+      await handleRebaseConflict();
+      return;
+    }
+    await resolvePushFailure(err);
   }
 }
 
@@ -1170,6 +1271,10 @@ ipcMain.handle('sync:pull', async () => {
 
 ipcMain.handle('sync:force', async () => {
   return forceSyncNow();
+});
+
+ipcMain.handle('sync:resolve', async (_event, choice) => {
+  return resolveRebaseConflict(choice);
 });
 
 ipcMain.handle('items:create', async (_event, text) => {

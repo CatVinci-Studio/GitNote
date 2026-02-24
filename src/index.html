@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -47,8 +47,8 @@
           <button id="btnNew" title="Ctrl+N">New</button>
           <button id="btnEdit" title="Ctrl+E">Edit</button>
           <button id="btnDelete">Delete</button>
-          <button id="btnPullSync" title="Pull latest from GitHub">拉取同步</button>
-          <button id="btnForceSync" class="ghost danger" title="Reset local to match GitHub">强制覆盖</button>
+          <button id="btnPullSync" title="Pull latest from GitHub">Pull Sync</button>
+          <button id="btnForceSync" class="ghost danger" title="Reset local to match GitHub">Force Overwrite</button>
           <button id="btnSettings">Settings</button>
         </div>
       </header>
@@ -181,6 +181,32 @@
         <button id="vaultChangeCancel" class="ghost">Cancel</button>
       </div>
       <p id="vaultChangeError" class="error"></p>
+    </div>
+  </section>
+
+  <section id="conflictModal" class="modal hidden">
+    <div class="conflict-card">
+      <h2>Sync Conflict Detected</h2>
+      <p class="muted small">Both devices modified the same snippet. Choose which version to keep.</p>
+      
+      <div class="conflict-content">
+        <div class="conflict-panel">
+          <h3>Your Version (Local)</h3>
+          <div id="conflictLocal" class="conflict-text"></div>
+        </div>
+        <div class="conflict-panel">
+          <h3>GitHub Version (Remote)</h3>
+          <div id="conflictRemote" class="conflict-text"></div>
+        </div>
+      </div>
+      
+      <p id="conflictError" class="error"></p>
+      
+      <div class="editor-actions">
+        <button id="conflictKeepLocal" class="primary">Keep My Version</button>
+        <button id="conflictKeepRemote" class="primary">Keep GitHub Version</button>
+        <button id="conflictCancel" class="ghost danger">Cancel Sync</button>
+      </div>
     </div>
   </section>
 
