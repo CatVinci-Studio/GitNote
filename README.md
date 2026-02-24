@@ -1,5 +1,7 @@
 # GitNote Quick
 
+[中文版](./README_ZH.md)
+
 A lightweight Electron desktop app for managing text snippets with zero-cost sync via a private GitHub repository.
 
 ## Features
@@ -14,6 +16,10 @@ A lightweight Electron desktop app for managing text snippets with zero-cost syn
 Current version: **v1.1.0**
 
 - [Release](https://github.com/CatVinci-Studio/GitNote/releases)
+
+**v1.0.0**
+
+- [Release](https://github.com/Muyiiiii/GitNote/releases/tag/v1)
 
 ## Quick Start
 
@@ -36,4 +42,3 @@ npm run build       # current platform
 
 MIT
 
-[中文版](./README_ZH.md)

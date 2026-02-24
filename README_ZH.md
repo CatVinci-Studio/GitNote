@@ -15,6 +15,10 @@
 
 - [发布页](https://github.com/CatVinci-Studio/GitNote/releases)
 
+**v1.0.0**
+
+- [发布页](https://github.com/Muyiiiii/GitNote/releases/tag/v1)
+
 ## 快速开始
 
 ```bash
