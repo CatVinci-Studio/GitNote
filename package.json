@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "A lightweight clipboard note app with GitHub sync.",
   "main": "src/main.js",
-  "author": "",
+  "author": "GitNote",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win"
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
@@ -26,20 +28,42 @@
       "src/**/*",
       "package.json"
     ],
+    "icon": "src/icon",
     "mac": {
       "target": [
-        "dmg"
-      ]
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "${productName}-${version}-mac-Install.dmg"
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-mac-Install.dmg"
     },
     "win": {
-      "icon": "build/icon.ico",
       "target": [
-        "nsis"
+        "nsis",
+        "portable"
       ]
     },
     "nsis": {
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
+      "artifactName": "${productName}-${version}-win-Install.exe"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-win-Portable.exe"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility"
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}-linux-Portable.${ext}"
+    },
+    "deb": {
+      "maintainer": "GitNote <contact@catvinci.com>",
+      "artifactName": "${productName}-${version}-linux-Install.${ext}"
     }
   }
 }
