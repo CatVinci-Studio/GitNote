@@ -12,8 +12,13 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
           - os: ubuntu-latest
             platform: linux
 
@@ -35,6 +40,24 @@ jobs:
         run: npm run build:${{ matrix.platform }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts
+        if: matrix.platform == 'win'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/*win-Install*.exe
+            dist/*win-Portable*.exe
+
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            dist/*mac-Install*.dmg
+            dist/*mac-Install*.zip
 
       - name: Upload Linux artifacts
         if: matrix.platform == 'linux'
@@ -60,6 +83,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            artifacts/windows-build/*
+            artifacts/macos-build/*
             artifacts/linux-build/*
           draft: false
           prerelease: false
