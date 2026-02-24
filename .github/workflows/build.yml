@@ -56,8 +56,8 @@ jobs:
         with:
           name: macos-build
           path: |
-            dist/*mac-Install*.dmg
-            dist/*mac-Install*.zip
+            dist/*-mac*.dmg
+            dist/*-mac*.zip
 
       - name: Upload Linux artifacts
         if: matrix.platform == 'linux'
