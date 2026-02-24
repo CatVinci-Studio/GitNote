@@ -64,6 +64,7 @@
     "deb": {
       "maintainer": "GitNote <contact@catvinci.com>",
       "artifactName": "${productName}-${version}-linux-Install.${ext}"
-    }
+    },
+    "publish": null
   }
 }
