@@ -33,12 +33,7 @@
       "target": [
         "dmg",
         "zip"
-      ]
-    },
-    "dmg": {
-      "artifactName": "${productName}-${version}-mac-Install.dmg"
-    },
-    "zip": {
+      ],
       "artifactName": "${productName}-${version}-mac-Install.${ext}"
     },
     "win": {
